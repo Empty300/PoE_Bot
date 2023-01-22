@@ -53,6 +53,21 @@ def find_items(img):
         return (0, 0)
 
 
+def mask_for_move(screen, vertex):
+    mask = np.zeros_like(screen)
+    cv2.fillPoly(mask, vertex, 255)
+    mask1 = cv2.bitwise_and(screen, mask)
+    return mask1
+
+def draw_lines(screen, lines):
+    try:
+        for line in lines:
+            cor = line[0]
+            cv2.line(screen, (cor[0], cor[1]), (cor[2], cor[3]), [255, 255, 255], 10)
+    except:
+        pass
+
+
 f = get_window_info()
 print(f)
 while True:
@@ -61,8 +76,12 @@ while True:
     # sobelx = cv2.Sobel(gray_img, cv2.CV_32F, 1, 0, ksize=5)
     # sobely = cv2.Sobel(gray_img, cv2.CV_32F, 0, 1, ksize=5)
     # sobel = (sobelx + sobely)
-    can = cv2.Canny(gray_img, 100, 200, 10)
-    cv2.imshow('mask', can)
+    can = cv2.Canny(gray_img, 200, 300, 20)
+    vertex = np.array([[100, 50], [650, 50], [650, 500], [100, 500]])
+    can1 = mask_for_move(can, [vertex])
+    lines = cv2.HoughLinesP(can1, 1, np.pi/180, 25, 100, 5)
+    draw_lines(can1, lines)
+    cv2.imshow('mask', can1)
     # movement.PressKey(movement.q)
     if cv2.waitKey(30) == ord("q"):
         cv2.destroyAllWindows()
