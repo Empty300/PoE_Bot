@@ -5,7 +5,7 @@ import numpy as np
 import win32gui
 from PIL import ImageGrab
 import pyautogui
-import movement
+
 
 def get_window_info():
     window_info = {}
@@ -36,56 +36,85 @@ def get_screen(x1, y1, x2, y2):
     return img
 
 
-def find_items(img):
+def hp_info(img):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    upper_range = np.array([61, 255, 255])
-    lower_range = np.array([59, 200, 200])
-
+    upper_range = np.array([122, 160, 160])
+    lower_range = np.array([120, 150, 150])
     mask = cv2.inRange(hsv, lower_range, upper_range)
 
-    (_, _, _, coords) = cv2.minMaxLoc(mask)
     moments = cv2.moments(mask, 1)
     dArea = moments['m00']
-    if dArea > 1000:
-        return coords
+    if dArea > 1:
+        return 0
     else:
-        return (0, 0)
+        upper_range = np.array([122, 200, 200])
+        lower_range = np.array([120, 100, 100])
+        mask = cv2.inRange(hsv, lower_range, upper_range)
+        moments = cv2.moments(mask, 1)
+        dArea = moments['m00']
+        if dArea > 1:
+            return 1
+        return 2
 
+def debuff_info(debuff_img):
+    for i in range(1, 8):
+        try:
+            query_img = cv2.imread(f'debuffs/7.png')
+            query_img = cv2.resize(query_img, (30, 30))
+            query_img_bw = cv2.cvtColor(query_img, cv2.COLOR_BGR2GRAY)
+            original_img_bw = cv2.cvtColor(debuff_img, cv2.COLOR_BGR2GRAY)
+            cv2.imshow('mask1', query_img_bw)
+            cv2.imshow('mask', original_img_bw)
+            result = cv2.matchTemplate(original_img_bw, query_img_bw, cv2.TM_CCOEFF_NORMED)
 
-def mask_for_move(screen, vertex):
-    mask = np.zeros_like(screen)
-    cv2.fillPoly(mask, vertex, 255)
-    mask1 = cv2.bitwise_and(screen, mask)
-    return mask1
+            threshold = 0.8
+            loc = np.where(result >= threshold)
 
-def draw_lines(screen, lines):
-    try:
-        for line in lines:
-            cor = line[0]
-            cv2.line(screen, (cor[0], cor[1]), (cor[2], cor[3]), [255, 255, 255], 10)
-    except:
-        pass
+            if len(loc[0]) > 0:
+                return True
+            else:
+                return False
+        except:
+            pass
 
 
 f = get_window_info()
 print(f)
 while True:
-    img = get_screen(f['x'], f['y'], f['width'], f['height'])
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # sobelx = cv2.Sobel(gray_img, cv2.CV_32F, 1, 0, ksize=5)
-    # sobely = cv2.Sobel(gray_img, cv2.CV_32F, 0, 1, ksize=5)
-    # sobel = (sobelx + sobely)
-    can = cv2.Canny(gray_img, 200, 300, 20)
-    vertex = np.array([[100, 50], [650, 50], [650, 500], [100, 500]])
-    can1 = mask_for_move(can, [vertex])
-    lines = cv2.HoughLinesP(can1, 1, np.pi/180, 25, 100, 5)
-    draw_lines(can1, lines)
-    cv2.imshow('mask', can1)
-    # movement.PressKey(movement.q)
+    hp_img = get_screen(f['x'], f['y']+500, f['width']-700, f['height']-50)
+    debuff_img = get_screen(f['x'], f['y']+30, f['width']-400, f['height']-500)
+
+    if hp_info(hp_img) == 1:
+        pyautogui.press('1')
+        sleep(1)
+    elif hp_info(hp_img) == 2:
+        # pyautogui.press('enter')
+        # pyautogui.write('/exit')
+        # pyautogui.press('enter')
+        sleep(2)
+
+    if debuff_info(debuff_img):
+        pyautogui.press('4')
+        sleep(2)
+
     if cv2.waitKey(30) == ord("q"):
         cv2.destroyAllWindows()
         break
+
+    # gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # # sobelx = cv2.Sobel(gray_img, cv2.CV_32F, 1, 0, ksize=5)
+    # # sobely = cv2.Sobel(gray_img, cv2.CV_32F, 0, 1, ksize=5)
+    # # sobel = (sobelx + sobely)
+    # can = cv2.Canny(gray_img, 200, 300, 20)
+    # vertex = np.array([[100, 50], [650, 50], [650, 500], [100, 500]])
+    # can1 = mask_for_move(can, [vertex])
+    # lines = cv2.HoughLinesP(can1, 1, np.pi/180, 25, 100, 5)
+    # draw_lines(can1, lines)
+    # cv2.imshow('mask', can1)
+    # # movement.PressKey(movement.q)
+    # if cv2.waitKey(30) == ord("q"):
+    #     cv2.destroyAllWindows()
+    #     break
 
 
 
