@@ -1,3 +1,4 @@
+import os
 from pickletools import uint8
 from time import sleep
 import cv2
@@ -57,29 +58,29 @@ def hp_info(img):
         return 2
 
 def debuff_info(debuff_img):
-    for i in range(1, 8):
-        try:
-            query_img = cv2.imread(f'debuffs/7.png')
-            query_img = cv2.resize(query_img, (30, 30))
-            query_img_bw = cv2.cvtColor(query_img, cv2.COLOR_BGR2GRAY)
-            original_img_bw = cv2.cvtColor(debuff_img, cv2.COLOR_BGR2GRAY)
-            cv2.imshow('mask1', query_img_bw)
-            cv2.imshow('mask', original_img_bw)
-            result = cv2.matchTemplate(original_img_bw, query_img_bw, cv2.TM_CCOEFF_NORMED)
+    for root, dirs, files in os.walk("debuffs"):
+        for debuff_name in files:
+            try:
+                query_img = cv2.imread(f'debuffs/{debuff_name}')
+                query_img = cv2.resize(query_img, (30, 30))
+                query_img_bw = cv2.cvtColor(query_img, cv2.COLOR_BGR2GRAY)
+                original_img_bw = cv2.cvtColor(debuff_img, cv2.COLOR_BGR2GRAY)
+                result = cv2.matchTemplate(original_img_bw, query_img_bw, cv2.TM_CCOEFF_NORMED)
 
-            threshold = 0.8
-            loc = np.where(result >= threshold)
+                threshold = 0.8
+                loc = np.where(result >= threshold)
 
-            if len(loc[0]) > 0:
-                return True
-            else:
-                return False
-        except:
-            pass
+                if len(loc[0]) > 0:
+                    print(debuff_name)
+                    return True
+
+            except:
+                pass
 
 
 f = get_window_info()
-print(f)
+
+
 while True:
     hp_img = get_screen(f['x'], f['y']+500, f['width']-700, f['height']-50)
     debuff_img = get_screen(f['x'], f['y']+30, f['width']-400, f['height']-500)
@@ -100,30 +101,5 @@ while True:
     if cv2.waitKey(30) == ord("q"):
         cv2.destroyAllWindows()
         break
-
-    # gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # # sobelx = cv2.Sobel(gray_img, cv2.CV_32F, 1, 0, ksize=5)
-    # # sobely = cv2.Sobel(gray_img, cv2.CV_32F, 0, 1, ksize=5)
-    # # sobel = (sobelx + sobely)
-    # can = cv2.Canny(gray_img, 200, 300, 20)
-    # vertex = np.array([[100, 50], [650, 50], [650, 500], [100, 500]])
-    # can1 = mask_for_move(can, [vertex])
-    # lines = cv2.HoughLinesP(can1, 1, np.pi/180, 25, 100, 5)
-    # draw_lines(can1, lines)
-    # cv2.imshow('mask', can1)
-    # # movement.PressKey(movement.q)
-    # if cv2.waitKey(30) == ord("q"):
-    #     cv2.destroyAllWindows()
-    #     break
-
-
-
-    # coords = find_items(img)
-    # while coords != (0, 0):
-    #     print(coords)
-    #     pyautogui.moveTo(coords)
-    #     pyautogui.click()
-    #     sleep(2)
-    #     coords = find_items(img)
 
 
