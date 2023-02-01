@@ -22,11 +22,20 @@ dropdown = tk.OptionMenu(frame1, var2, *options)
 dropdown.config(state=tk.DISABLED)
 dropdown.pack(anchor=tk.W)
 
+options = ["1", "2", "3", "4", "5"]
+var12 = tk.StringVar()
+var12.set("Кнопка с банкой на хил")
+heal = tk.OptionMenu(frame1, var12, *options)
+heal.config(state=tk.DISABLED)
+heal.pack(anchor=tk.W)
+
 def checkbox_callback(*args):
     if var1.get() == 1:
         dropdown.config(state=tk.NORMAL)
+        heal.config(state=tk.NORMAL)
     else:
         dropdown.config(state=tk.DISABLED)
+        heal.config(state=tk.DISABLED)
 
 var1.trace("w", checkbox_callback)
 
@@ -34,53 +43,71 @@ var1.trace("w", checkbox_callback)
 """Создание фрейма отслеживания дебаффов"""
 frame2 = tk.Frame(root, bd=5, relief=tk.GROOVE, width=300, height=300)
 frame2.pack(side="right", fill="both", expand=True)
-label = tk.Label(frame2, text="Отслеживать дебафы?").pack()
+main_label = tk.Label(frame2, text="Отслеживать дебафы?").pack()
 
 var5 = tk.IntVar()
 checkbox5 = tk.Checkbutton(frame2, text="Да", variable=var5)
 checkbox5.pack(anchor=tk.W)
 
+"""Отслеживание курсы"""
+
+
 var6 = tk.IntVar()
-checkbox6 = tk.Checkbutton(frame2, text="Option 6", variable=var6, state=tk.DISABLED)
+checkbox6 = tk.Checkbutton(frame2, text="Отслеживать и диспелить курсу", variable=var6)
+checkbox6.config(state=tk.DISABLED)
 checkbox6.pack(anchor=tk.W)
-options = ["Option 1", "Option 2", "Option 3"]
-var3 = tk.StringVar()
-var3.set(options[0])  # default value
-option_menu = tk.OptionMenu(frame2, var3, *options)
-option_menu.pack(anchor=tk.W)
+
+var9 = tk.StringVar()
+var9.set("Кнопка с диспелом")
+disp_curs = tk.OptionMenu(frame2, var9, *options)
+disp_curs.config(state=tk.DISABLED)
+disp_curs.pack(anchor=tk.W)
+
+"""Отслеживание фриза"""
 
 var7 = tk.IntVar()
-checkbox7 = tk.Checkbutton(frame2, text="Option 7", variable=var7, state=tk.DISABLED)
+checkbox7 = tk.Checkbutton(frame2, text="Отслеживать и диспелить фриз", variable=var7, state=tk.DISABLED)
 checkbox7.pack(anchor=tk.W)
-options = ["Option 1", "Option 2", "Option 3"]
-var4 = tk.StringVar()
-var4.set(options[0])  # default value
-options = ["Option 1", "Option 2", "Option 3"]
-option_menu = tk.OptionMenu(frame2,var4, *options)
-option_menu.pack(anchor=tk.W)
+
+var10 = tk.StringVar()
+var10.set("Кнопка с диспелом")
+disp_freeze = tk.OptionMenu(frame2,var10, *options)
+disp_freeze.config(state=tk.DISABLED)
+disp_freeze.pack(anchor=tk.W)
+
+"""Отслеживание яда"""
 
 var8 = tk.IntVar()
-checkbox8 = tk.Checkbutton(frame2, text="Option 8", variable=var8, state=tk.DISABLED)
+checkbox8 = tk.Checkbutton(frame2, text="Отслеживать и диспелить яд", variable=var8, state=tk.DISABLED)
 checkbox8.pack(anchor=tk.W)
-options = ["Option 1", "Option 2", "Option 3"]
-var5 = tk.StringVar()
-var5.set(options[0])  # default value
-option_menu = tk.OptionMenu(frame2,var5, *options)
-option_menu.pack(anchor=tk.W)
+
+var11 = tk.StringVar()
+var11.set("Кнопка с диспелом")
+disp_poison = tk.OptionMenu(frame2, var11, *options)
+disp_poison.config(state=tk.DISABLED)
+disp_poison.pack(anchor=tk.W)
 
 def on_var5_change(*args):
-    if var5.get() == 1:
+    if var5.get() == True:
         checkbox6.config(state=tk.NORMAL)
         checkbox7.config(state=tk.NORMAL)
         checkbox8.config(state=tk.NORMAL)
+        disp_curs.config(state=tk.NORMAL)
+        disp_freeze.config(state=tk.NORMAL)
+        disp_poison.config(state=tk.NORMAL)
+
     else:
         checkbox6.config(state=tk.DISABLED)
         checkbox7.config(state=tk.DISABLED)
         checkbox8.config(state=tk.DISABLED)
+        disp_curs.config(state=tk.DISABLED)
+        disp_freeze.config(state=tk.DISABLED)
+        disp_poison.config(state=tk.DISABLED)
+
 
 var5.trace("w", on_var5_change)
-var6 = tk.StringVar(frame2)
-var6.set("Option 1") # default value
+
+
 
 
 
