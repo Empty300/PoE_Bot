@@ -57,6 +57,7 @@ def hp_info(img):
             return 1
         return 2
 
+
 def debuff_info(debuff_img):
     for root, dirs, files in os.walk("debuffs"):
         for debuff_name in files:
@@ -80,10 +81,9 @@ def debuff_info(debuff_img):
 
 f = get_window_info()
 
-
 while True:
-    hp_img = get_screen(f['x'], f['y']+500, f['width']-700, f['height']-50)
-    debuff_img = get_screen(f['x'], f['y']+30, f['width']-400, f['height']-500)
+    hp_img = get_screen(f['x'], f['y'] + 500, f['width'] - 700, f['height'] - 50)
+    debuff_img = get_screen(f['x'], f['y'] + 30, f['width'] - 400, f['height'] - 500)
 
     if hp_info(hp_img) == 1:
         pyautogui.press('1')
@@ -101,5 +101,3 @@ while True:
     if cv2.waitKey(30) == ord("q"):
         cv2.destroyAllWindows()
         break
-
-
