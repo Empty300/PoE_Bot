@@ -1,0 +1,14 @@
+track_hp = 0
+logout_macro = 'Да (логаут на F1)'
+heal_button = '1'
+track_debuffs = 1
+track_curs = 1
+curs_button = '2'
+track_freeze = 1
+freeze_button = '2'
+track_poison = 1
+poison_button = '3'
+track_bleed = 1
+bleed_button = '5'
+track_shock = 1
+shock_button = '5'

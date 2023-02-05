@@ -6,6 +6,8 @@ import numpy as np
 import win32gui
 from PIL import ImageGrab
 import pyautogui
+import settings
+import importlib
 
 
 def get_window_info():
@@ -37,7 +39,8 @@ def get_screen(x1, y1, x2, y2):
     return img
 
 
-def hp_info(img):
+def hp_info():
+    img = get_screen(f['x'], f['y'] + 500, f['width'] - 700, f['height'] - 50)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     upper_range = np.array([122, 160, 160])
     lower_range = np.array([120, 150, 150])
@@ -58,7 +61,8 @@ def hp_info(img):
         return 2
 
 
-def debuff_info(debuff_img):
+def debuff_info():
+    debuff_img = get_screen(f['x'], f['y'] + 30, f['width'] - 400, f['height'] - 500)
     for root, dirs, files in os.walk("debuffs"):
         for debuff_name in files:
             try:
@@ -72,32 +76,72 @@ def debuff_info(debuff_img):
                 loc = np.where(result >= threshold)
 
                 if len(loc[0]) > 0:
-                    print(debuff_name)
-                    return True
+
+                    return debuff_name.split(".")[0]
 
             except:
                 pass
 
 
-f = get_window_info()
-
-while True:
-    hp_img = get_screen(f['x'], f['y'] + 500, f['width'] - 700, f['height'] - 50)
-    debuff_img = get_screen(f['x'], f['y'] + 30, f['width'] - 400, f['height'] - 500)
-
-    if hp_info(hp_img) == 1:
-        pyautogui.press('1')
+def heal_or_logout():
+    realtime_hp = hp_info()
+    if realtime_hp == 1:
+        pyautogui.press(settings.heal_button)
+        print("use heal")
         sleep(1)
-    elif hp_info(hp_img) == 2:
-        # pyautogui.press('enter')
-        # pyautogui.write('/exit')
-        # pyautogui.press('enter')
-        sleep(2)
+    elif realtime_hp == 2:
+        if settings.logout_macro == 'Нет':
+            pyautogui.press('enter')
+            pyautogui.write('/exit')
+            pyautogui.press('enter')
+            sleep(2)
+        else:
+            pyautogui.press('F1')
+            sleep(1)
 
-    if debuff_info(debuff_img):
-        pyautogui.press('4')
-        sleep(2)
 
-    if cv2.waitKey(30) == ord("q"):
-        cv2.destroyAllWindows()
-        break
+def debuff_type(debuff):
+    if debuff in ['assas mark', 'conduciivity', 'Elemental Weakness', 'Enfeeble',
+                  'frostbite', 'temporal chains', 'Vulnerability']:
+        return 'curs'
+    elif debuff in ['Bleed', 'Corrupted Blood']:
+        return 'bleed'
+    elif debuff in ['poisoned']:
+        return 'poison'
+    elif debuff in ['frozen']:
+        return 'frozen'
+    elif debuff in ['shoked']:
+        return 'shoked'
+
+def main():
+    importlib.reload(settings)
+    global f
+
+    f = get_window_info()
+
+    while True:
+        disc = win32gui.FindWindow(None, 'Path of Exile')
+        if win32gui.IsIconic(disc) == 0 and disc == win32gui.GetForegroundWindow():
+            if settings.track_hp:
+                heal_or_logout()
+
+            if settings.track_debuffs:
+                realtime_debuff = debuff_type(debuff_info())
+                print(realtime_debuff)
+                if realtime_debuff == 'curs' and settings.track_curs:
+                    pyautogui.press(settings.curs_button)
+                elif realtime_debuff == 'bleed' and settings.track_bleed:
+                    pyautogui.press(settings.bleed_button)
+                elif realtime_debuff == 'poison' and settings.track_poison:
+                    pyautogui.press(settings.poison_button)
+                elif realtime_debuff == 'frozen' and settings.track_freeze:
+                    pyautogui.press(settings.freeze_button)
+                elif realtime_debuff == 'shoked' and settings.track_shock:
+                    pyautogui.press(settings.shock_button)
+
+        if cv2.waitKey(30) == ord("q"):
+            cv2.destroyAllWindows()
+            break
+
+
+
