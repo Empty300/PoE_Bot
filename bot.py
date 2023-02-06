@@ -1,13 +1,14 @@
 import os
-from pickletools import uint8
 from time import sleep
 import cv2
 import numpy as np
+import tkinter as tk
 import win32gui
 from PIL import ImageGrab
 import pyautogui
 import settings
 import importlib
+import datetime
 
 
 def get_window_info():
@@ -40,6 +41,7 @@ def get_screen(x1, y1, x2, y2):
 
 
 def hp_info():
+    """При достижении хп определенной границы возвращает информацию"""
     img = get_screen(f['x'], f['y'] + 500, f['width'] - 700, f['height'] - 50)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     upper_range = np.array([122, 160, 160])
@@ -62,6 +64,7 @@ def hp_info():
 
 
 def debuff_info():
+    """Отслеживает наличие дебаффов. Возвращает его название"""
     debuff_img = get_screen(f['x'], f['y'] + 30, f['width'] - 400, f['height'] - 500)
     for root, dirs, files in os.walk("debuffs"):
         for debuff_name in files:
@@ -76,31 +79,14 @@ def debuff_info():
                 loc = np.where(result >= threshold)
 
                 if len(loc[0]) > 0:
-
                     return debuff_name.split(".")[0]
 
             except:
                 pass
 
 
-def heal_or_logout():
-    realtime_hp = hp_info()
-    if realtime_hp == 1:
-        pyautogui.press(settings.heal_button)
-        print("use heal")
-        sleep(1)
-    elif realtime_hp == 2:
-        if settings.logout_macro == 'Нет':
-            pyautogui.press('enter')
-            pyautogui.write('/exit')
-            pyautogui.press('enter')
-            sleep(2)
-        else:
-            pyautogui.press('F1')
-            sleep(1)
-
-
 def debuff_type(debuff):
+    """Определяет тип дебаффа"""
     if debuff in ['assas mark', 'conduciivity', 'Elemental Weakness', 'Enfeeble',
                   'frostbite', 'temporal chains', 'Vulnerability']:
         return 'curs'
@@ -113,35 +99,80 @@ def debuff_type(debuff):
     elif debuff in ['shoked']:
         return 'shoked'
 
+
+script_status = True
+
+
+def end_script():
+    """Отключает скрипт"""
+    global script_status
+    script_status = False
+
+
 def main():
     importlib.reload(settings)
     global f
-
     f = get_window_info()
 
+    """Создается окно с логами"""
+
+    log_window = tk.Tk()
+    log_window.title("Логи")
+    log_window.geometry("300x400")
+    frame = tk.Frame(log_window, bd=1, relief=tk.GROOVE)
+    frame.pack(padx=10, pady=10)
+    frame2 = tk.Frame(log_window)
+    frame2.pack(side=tk.BOTTOM, anchor=tk.CENTER, pady=5)
+    tk.Label(frame, text="Логи:").pack()
+    text = tk.Text(frame, wrap="word", width=21, height=13)
+    text.pack()
+    text.config(font=("arial black", 12))
+    button = tk.Button(frame2, text="Выключить бота", command=end_script)
+    button.pack(pady=5)
+
+    """Цикл в котором при необходимости выполняются нужные действия. Действия выводятся в лог"""
+
     while True:
+        now = datetime.datetime.now()
         disc = win32gui.FindWindow(None, 'Path of Exile')
         if win32gui.IsIconic(disc) == 0 and disc == win32gui.GetForegroundWindow():
             if settings.track_hp:
-                heal_or_logout()
+                realtime_hp = hp_info()
+                if realtime_hp == 1:
+                    pyautogui.press(settings.heal_button)
+                    text.insert("end", f"{now.strftime('%H:%M:%S')} Пью хилку\n")
+                    sleep(1)
+                elif realtime_hp == 2:
+                    if settings.logout_macro == 'Нет':
+                        pyautogui.press('enter')
+                        pyautogui.write('/exit')
+                        pyautogui.press('enter')
+                        text.insert("end", f"{now.strftime('%H:%M:%S')} Логаут\n")
+                        sleep(5)
+                    else:
+                        pyautogui.press('F1')
+                        text.insert("end", f"{now.strftime('%H:%M:%S')} Логаут\n")
+                        sleep(5)
 
             if settings.track_debuffs:
                 realtime_debuff = debuff_type(debuff_info())
-                print(realtime_debuff)
                 if realtime_debuff == 'curs' and settings.track_curs:
                     pyautogui.press(settings.curs_button)
+                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю курсу\n")
                 elif realtime_debuff == 'bleed' and settings.track_bleed:
                     pyautogui.press(settings.bleed_button)
+                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю блид\n")
                 elif realtime_debuff == 'poison' and settings.track_poison:
                     pyautogui.press(settings.poison_button)
+                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю яд\n")
                 elif realtime_debuff == 'frozen' and settings.track_freeze:
                     pyautogui.press(settings.freeze_button)
+                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю фриз\n")
                 elif realtime_debuff == 'shoked' and settings.track_shock:
                     pyautogui.press(settings.shock_button)
+                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю шок\n")
+        log_window.update()
 
-        if cv2.waitKey(30) == ord("q"):
-            cv2.destroyAllWindows()
+        if script_status == False:
+            log_window.destroy()
             break
-
-
-

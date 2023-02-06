@@ -7,7 +7,6 @@ root = tk.Tk()
 root.title("Poe bot")
 root.geometry("650x400")
 
-
 """Создание фрейма отслеживания хп"""
 frame1 = tk.Frame(root, bd=0, relief=tk.GROOVE)
 frame1.pack(side="left", fill="both", expand=True, padx=10, pady=10)
@@ -149,6 +148,7 @@ def save_settings():
             f"track_shock = {shock.get()}\n"
             f"shock_button = '{button_disp_shock.get()}'\n"
         )
+
     root.destroy()
 
     main()
