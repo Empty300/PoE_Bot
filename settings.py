@@ -1,7 +1,7 @@
 track_hp = 1
 logout_macro = 'Да (логаут на F1)'
 heal_button = '1'
-track_debuffs = 0
+track_debuffs = 1
 track_curs = 1
 curs_button = '2'
 track_freeze = 1

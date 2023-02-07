@@ -40,8 +40,27 @@ def get_screen(x1, y1, x2, y2):
     return img
 
 
+def find_loading():
+    """Определяет наличие загрузки"""
+    img = get_screen(f['x'], f['y'] + 500, f['width'] - 700, f['height'] - 50)
+
+    query_img = cv2.imread(f'debuffs/loading.png')
+    query_img = cv2.resize(query_img, (124, 88))
+    query_img_bw = cv2.cvtColor(query_img, cv2.COLOR_BGR2GRAY)
+    original_img_bw = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    cv2.imshow("qw", original_img_bw)
+    cv2.imshow("qw1", query_img_bw)
+    result = cv2.matchTemplate(original_img_bw, query_img_bw, cv2.TM_CCOEFF_NORMED)
+
+    threshold = 0.2
+    loc = np.where(result >= threshold)
+
+    if len(loc[0]) > 0:
+        return True
+
+
 def hp_info():
-    """При достижении хп определенной границы возвращает информацию"""
+    """При достижении хп определенной границы возвращает информацию."""
     img = get_screen(f['x'], f['y'] + 500, f['width'] - 700, f['height'] - 50)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     upper_range = np.array([122, 160, 160])
@@ -136,41 +155,45 @@ def main():
         now = datetime.datetime.now()
         disc = win32gui.FindWindow(None, 'Path of Exile')
         if win32gui.IsIconic(disc) == 0 and disc == win32gui.GetForegroundWindow():
-            if settings.track_hp:
-                realtime_hp = hp_info()
-                if realtime_hp == 1:
-                    pyautogui.press(settings.heal_button)
-                    text.insert("end", f"{now.strftime('%H:%M:%S')} Пью хилку\n")
-                    sleep(1)
-                elif realtime_hp == 2:
-                    if settings.logout_macro == 'Нет':
-                        pyautogui.press('enter')
-                        pyautogui.write('/exit')
-                        pyautogui.press('enter')
-                        text.insert("end", f"{now.strftime('%H:%M:%S')} Логаут\n")
-                        sleep(5)
-                    else:
-                        pyautogui.press('F1')
-                        text.insert("end", f"{now.strftime('%H:%M:%S')} Логаут\n")
-                        sleep(5)
+            if find_loading():
+                print("загрузка")
+                continue
+            else:
+                if settings.track_hp:
+                    realtime_hp = hp_info()
+                    if realtime_hp == 1:
+                        pyautogui.press(settings.heal_button)
+                        text.insert("end", f"{now.strftime('%H:%M:%S')} Пью хилку\n")
+                        sleep(1)
+                    elif realtime_hp == 2:
+                        if settings.logout_macro == 'Нет':
+                            pyautogui.press('enter')
+                            pyautogui.write('/exit')
+                            pyautogui.press('enter')
+                            text.insert("end", f"{now.strftime('%H:%M:%S')} Логаут\n")
+                            sleep(5)
+                        else:
+                            pyautogui.press('F1')
+                            text.insert("end", f"{now.strftime('%H:%M:%S')} Логаут\n")
+                            sleep(5)
 
-            if settings.track_debuffs:
-                realtime_debuff = debuff_type(debuff_info())
-                if realtime_debuff == 'curs' and settings.track_curs:
-                    pyautogui.press(settings.curs_button)
-                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю курсу\n")
-                elif realtime_debuff == 'bleed' and settings.track_bleed:
-                    pyautogui.press(settings.bleed_button)
-                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю блид\n")
-                elif realtime_debuff == 'poison' and settings.track_poison:
-                    pyautogui.press(settings.poison_button)
-                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю яд\n")
-                elif realtime_debuff == 'frozen' and settings.track_freeze:
-                    pyautogui.press(settings.freeze_button)
-                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю фриз\n")
-                elif realtime_debuff == 'shoked' and settings.track_shock:
-                    pyautogui.press(settings.shock_button)
-                    text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю шок\n")
+                if settings.track_debuffs:
+                    realtime_debuff = debuff_type(debuff_info())
+                    if realtime_debuff == 'curs' and settings.track_curs:
+                        pyautogui.press(settings.curs_button)
+                        text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю курсу\n")
+                    elif realtime_debuff == 'bleed' and settings.track_bleed:
+                        pyautogui.press(settings.bleed_button)
+                        text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю блид\n")
+                    elif realtime_debuff == 'poison' and settings.track_poison:
+                        pyautogui.press(settings.poison_button)
+                        text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю яд\n")
+                    elif realtime_debuff == 'frozen' and settings.track_freeze:
+                        pyautogui.press(settings.freeze_button)
+                        text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю фриз\n")
+                    elif realtime_debuff == 'shoked' and settings.track_shock:
+                        pyautogui.press(settings.shock_button)
+                        text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю шок\n")
         log_window.update()
 
         if script_status == False:
