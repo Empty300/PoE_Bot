@@ -42,17 +42,15 @@ def get_screen(x1, y1, x2, y2):
 
 def find_loading():
     """Определяет наличие загрузки"""
-    img = get_screen(f['x'], f['y'] + 500, f['width'] - 700, f['height'] - 50)
+    img = get_screen(0, 0, f['width']/3, f['height']/1)
 
     query_img = cv2.imread(f'debuffs/loading.png')
-    query_img = cv2.resize(query_img, (124, 88))
+    query_img = cv2.resize(query_img, (int(f['width']/5 - f['width']/12), int(f['height']/1.10 - f['height']/1.25)))
     query_img_bw = cv2.cvtColor(query_img, cv2.COLOR_BGR2GRAY)
     original_img_bw = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    cv2.imshow("qw", original_img_bw)
-    cv2.imshow("qw1", query_img_bw)
     result = cv2.matchTemplate(original_img_bw, query_img_bw, cv2.TM_CCOEFF_NORMED)
 
-    threshold = 0.2
+    threshold = 0.6
     loc = np.where(result >= threshold)
 
     if len(loc[0]) > 0:
@@ -61,11 +59,13 @@ def find_loading():
 
 def hp_info():
     """При достижении хп определенной границы возвращает информацию."""
-    img = get_screen(f['x'], f['y'] + 500, f['width'] - 700, f['height'] - 50)
+    img = get_screen(0, f['height']/1.25, f['width']/10, f['height']/1.10)
+
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     upper_range = np.array([122, 160, 160])
     lower_range = np.array([120, 150, 150])
     mask = cv2.inRange(hsv, lower_range, upper_range)
+
 
     moments = cv2.moments(mask, 1)
     dArea = moments['m00']
@@ -84,20 +84,22 @@ def hp_info():
 
 def debuff_info():
     """Отслеживает наличие дебаффов. Возвращает его название"""
-    debuff_img = get_screen(f['x'], f['y'] + 30, f['width'] - 400, f['height'] - 500)
+    debuff_img = get_screen(0, 0, f['width']/3, f['height']/5)
     for root, dirs, files in os.walk("debuffs"):
         for debuff_name in files:
             try:
                 query_img = cv2.imread(f'debuffs/{debuff_name}')
-                query_img = cv2.resize(query_img, (30, 30))
+                query_img = cv2.resize(query_img, (48, 51))
                 query_img_bw = cv2.cvtColor(query_img, cv2.COLOR_BGR2GRAY)
                 original_img_bw = cv2.cvtColor(debuff_img, cv2.COLOR_BGR2GRAY)
                 result = cv2.matchTemplate(original_img_bw, query_img_bw, cv2.TM_CCOEFF_NORMED)
+                cv2.imshow("TT", original_img_bw)
 
                 threshold = 0.8
                 loc = np.where(result >= threshold)
 
                 if len(loc[0]) > 0:
+                    print(debuff_name.split(".")[0])
                     return debuff_name.split(".")[0]
 
             except:
@@ -156,7 +158,7 @@ def main():
         disc = win32gui.FindWindow(None, 'Path of Exile')
         if win32gui.IsIconic(disc) == 0 and disc == win32gui.GetForegroundWindow():
             if find_loading():
-                print("загрузка")
+                print("загркза")
                 continue
             else:
                 if settings.track_hp:

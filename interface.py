@@ -5,11 +5,11 @@ from bot import main
 
 root = tk.Tk()
 root.title("Poe bot")
-root.geometry("650x400")
+root.geometry("600x400")
 
 """Создание фрейма отслеживания хп"""
 frame1 = tk.Frame(root, bd=0, relief=tk.GROOVE)
-frame1.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+frame1.pack(side="left", fill="both", expand=True, padx=25, pady=10)
 tk.Label(frame1, text="Отслеживать хп?").pack()
 
 main_heal = tk.IntVar()
