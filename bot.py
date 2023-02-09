@@ -1,14 +1,16 @@
 import os
-from time import sleep
-import cv2
-import numpy as np
 import tkinter as tk
+from datetime import datetime
+from importlib import reload
+from time import sleep
+
+import cv2
 import win32gui
+from numpy import array, where
 from PIL import ImageGrab
-import pyautogui
+from pyautogui import press, write
+
 import settings
-import importlib
-import datetime
 
 
 def get_window_info():
@@ -36,22 +38,22 @@ def set_window_coordinates(hwnd, window_info):
 def get_screen(x1, y1, x2, y2):
     box = (x1, y1, x2, y2)
     screen = ImageGrab.grab(box)
-    img = np.array(screen)
+    img = array(screen)
     return img
 
 
 def find_loading():
     """Определяет наличие загрузки"""
-    img = get_screen(0, 0, f['width']/3, f['height']/1)
-
-    query_img = cv2.imread(f'debuffs/loading.png')
-    query_img = cv2.resize(query_img, (int(f['width']/5 - f['width']/12), int(f['height']/1.10 - f['height']/1.25)))
+    img = get_screen(0, 0, f['width'] / 3, f['height'] / 1)
+    query_img = cv2.imread('debuffs/loading.png')
+    query_img = cv2.resize(query_img,
+                           (int(f['width'] / 5 - f['width'] / 12), int(f['height'] / 1.10 - f['height'] / 1.25)))
     query_img_bw = cv2.cvtColor(query_img, cv2.COLOR_BGR2GRAY)
     original_img_bw = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     result = cv2.matchTemplate(original_img_bw, query_img_bw, cv2.TM_CCOEFF_NORMED)
 
     threshold = 0.6
-    loc = np.where(result >= threshold)
+    loc = where(result >= threshold)
 
     if len(loc[0]) > 0:
         return True
@@ -59,21 +61,20 @@ def find_loading():
 
 def hp_info():
     """При достижении хп определенной границы возвращает информацию."""
-    img = get_screen(0, f['height']/1.25, f['width']/10, f['height']/1.10)
+    img = get_screen(0, f['height'] / 1.25, f['width'] / 10, f['height'] / 1.10)
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    upper_range = np.array([122, 160, 160])
-    lower_range = np.array([120, 150, 150])
+    upper_range = array([122, 160, 160])
+    lower_range = array([120, 150, 150])
     mask = cv2.inRange(hsv, lower_range, upper_range)
-
 
     moments = cv2.moments(mask, 1)
     dArea = moments['m00']
     if dArea > 1:
         return 0
     else:
-        upper_range = np.array([122, 200, 200])
-        lower_range = np.array([120, 100, 100])
+        upper_range = array([122, 200, 200])
+        lower_range = array([120, 100, 100])
         mask = cv2.inRange(hsv, lower_range, upper_range)
         moments = cv2.moments(mask, 1)
         dArea = moments['m00']
@@ -84,7 +85,7 @@ def hp_info():
 
 def debuff_info():
     """Отслеживает наличие дебаффов. Возвращает его название"""
-    debuff_img = get_screen(0, 0, f['width']/3, f['height']/5)
+    debuff_img = get_screen(0, 0, f['width'] / 3, f['height'] / 5)
     for root, dirs, files in os.walk("debuffs"):
         for debuff_name in files:
             try:
@@ -96,10 +97,9 @@ def debuff_info():
                 cv2.imshow("TT", original_img_bw)
 
                 threshold = 0.8
-                loc = np.where(result >= threshold)
+                loc = where(result >= threshold)
 
                 if len(loc[0]) > 0:
-                    print(debuff_name.split(".")[0])
                     return debuff_name.split(".")[0]
 
             except:
@@ -131,7 +131,7 @@ def end_script():
 
 
 def main():
-    importlib.reload(settings)
+    reload(settings)
     global f
     f = get_window_info()
 
@@ -154,47 +154,46 @@ def main():
     """Цикл в котором при необходимости выполняются нужные действия. Действия выводятся в лог"""
 
     while True:
-        now = datetime.datetime.now()
+        now = datetime.now()
         disc = win32gui.FindWindow(None, 'Path of Exile')
         if win32gui.IsIconic(disc) == 0 and disc == win32gui.GetForegroundWindow():
             if find_loading():
-                print("загркза")
                 continue
             else:
                 if settings.track_hp:
                     realtime_hp = hp_info()
                     if realtime_hp == 1:
-                        pyautogui.press(settings.heal_button)
+                        press(settings.heal_button)
                         text.insert("end", f"{now.strftime('%H:%M:%S')} Пью хилку\n")
                         sleep(1)
                     elif realtime_hp == 2:
                         if settings.logout_macro == 'Нет':
-                            pyautogui.press('enter')
-                            pyautogui.write('/exit')
-                            pyautogui.press('enter')
+                            press('enter')
+                            write('/exit')
+                            press('enter')
                             text.insert("end", f"{now.strftime('%H:%M:%S')} Логаут\n")
                             sleep(5)
                         else:
-                            pyautogui.press('F1')
+                            press('F1')
                             text.insert("end", f"{now.strftime('%H:%M:%S')} Логаут\n")
                             sleep(5)
 
                 if settings.track_debuffs:
                     realtime_debuff = debuff_type(debuff_info())
                     if realtime_debuff == 'curs' and settings.track_curs:
-                        pyautogui.press(settings.curs_button)
+                        press(settings.curs_button)
                         text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю курсу\n")
                     elif realtime_debuff == 'bleed' and settings.track_bleed:
-                        pyautogui.press(settings.bleed_button)
+                        press(settings.bleed_button)
                         text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю блид\n")
                     elif realtime_debuff == 'poison' and settings.track_poison:
-                        pyautogui.press(settings.poison_button)
+                        press(settings.poison_button)
                         text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю яд\n")
                     elif realtime_debuff == 'frozen' and settings.track_freeze:
-                        pyautogui.press(settings.freeze_button)
+                        press(settings.freeze_button)
                         text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю фриз\n")
                     elif realtime_debuff == 'shoked' and settings.track_shock:
-                        pyautogui.press(settings.shock_button)
+                        press(settings.shock_button)
                         text.insert("end", f"{now.strftime('%H:%M:%S')} Диспелю шок\n")
         log_window.update()
 
